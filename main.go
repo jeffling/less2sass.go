@@ -2,6 +2,7 @@ package main
 
 import (
   "os"
+  "log"
   "strings"
   "io/ioutil"
   "path/filepath"
@@ -28,13 +29,16 @@ func transformLessToSass(content []byte) []byte {
 }
 
 func parseSrc(path string, info os.FileInfo, err error) error {
+  if err != nil {
+    return err
+  }
+
   if !info.IsDir() && filepath.Ext(path) == ".less" {
     content, err := ioutil.ReadFile(path)
     if err != nil {
       println("There was an error reading file", path)
-      return nil
+      return err
     }
-    lessContent := content
 
     // write file into destination directory
     destPath := os.Args[len(os.Args) - 1]
@@ -43,40 +47,38 @@ func parseSrc(path string, info os.FileInfo, err error) error {
     }
     newFilePath := strings.Join([]string{destPath, strings.TrimSuffix(path, filepath.Ext(path)), ".scss"}, "")
 
-    err = ioutil.WriteFile(newFilePath, transformLessToSass(lessContent), info.Mode())
+    err = ioutil.WriteFile(newFilePath, transformLessToSass(content), info.Mode())
 
     if err != nil {
-      println("there was an error writing the sass file")
+      println("there was an error writing to", newFilePath)
       return err
     }
   }
-  return nil
+  return err
 } 
 
 func main() {
   lastArgIndex := IntMax(len(os.Args) - 1, 1)
 
   if lastArgIndex < 2 {
-    println("USAGE: less2sass <srcFile or srcDirectory> ... <destDirectory>")
-    return
+    log.Fatal("USAGE: less2sass <srcFile or srcDirectory> ... <destDirectory>")
   }
   
   // check if the last argument is correct
   destDir, err := os.Open(os.Args[lastArgIndex]); 
   if err != nil {
-    println("The last argument should be the destination directory")
-    return
+    log.Fatal("The last argument should be the destination directory")
   }
+  defer destDir.Close()
 
   if stat, err := destDir.Stat(); err != nil || !stat.IsDir() {
-    println("The destination argument should point to a directory")
-    return
+    log.Fatal("The destination argument should point to a directory")
   }
 
   // walk through the source files/directories
   for _, filePath := range os.Args[1:lastArgIndex] {
     if filepath.Walk(filePath, parseSrc) != nil {
-      println ("The ")
+      log.Fatal("Could not walk through source directories")
     }
   }
 }
