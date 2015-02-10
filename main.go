@@ -40,7 +40,6 @@ func parseSrc(path string, info os.FileInfo, err error) error {
 		newFilePath := destPath + replaceExt(path, ".scss")
 
 		err = ioutil.WriteFile(newFilePath, transformLessToSass(content), info.Mode())
-
 		if err != nil {
 			log.Println("there was an error writing to", newFilePath)
 			return err
