@@ -42,7 +42,7 @@ func parseSrc(path string, info os.FileInfo, err error) error {
   if !info.IsDir() && filepath.Ext(path) == ".less" {
     content, err := ioutil.ReadFile(path)
     if err != nil {
-      println("There was an error reading file", path)
+      log.Println("There was an error reading file", path)
       return err
     }
 
@@ -55,12 +55,25 @@ func parseSrc(path string, info os.FileInfo, err error) error {
     err = ioutil.WriteFile(newFilePath, transformLessToSass(content), info.Mode())
 
     if err != nil {
-      println("there was an error writing to", newFilePath)
+      log.Println("there was an error writing to", newFilePath)
       return err
     }
   }
   return err
-} 
+}
+
+func dirExists(path string) (bool, error) {
+  dir, err := os.Open(path); 
+  if err != nil {
+    return false, err
+  }
+  defer dir.Close()
+
+  if stat, err := dir.Stat(); err != nil || !stat.IsDir() {
+    return false, err
+  }
+  return true, nil
+}
 
 func main() {
   lastArgIndex := IntMax(len(os.Args) - 1, 1)
@@ -70,20 +83,15 @@ func main() {
   }
   
   // check if the last argument is correct
-  destDir, err := os.Open(os.Args[lastArgIndex]); 
-  if err != nil {
+  if _, err := dirExists(os.Args[lastArgIndex]); err != nil {
     log.Fatal("The last argument should be the destination directory")
-  }
-  defer destDir.Close()
-
-  if stat, err := destDir.Stat(); err != nil || !stat.IsDir() {
-    log.Fatal("The destination argument should point to a directory")
   }
 
   // walk through the source files/directories
   for _, filePath := range os.Args[1:lastArgIndex] {
-    if filepath.Walk(filePath, parseSrc) != nil {
-      log.Fatal("Could not walk through source directories")
+    if err := filepath.Walk(filePath, parseSrc); err != nil {
+      log.Println("Could not walk through source directory", filePath)
+      log.Println(err)
     }
   }
 }
