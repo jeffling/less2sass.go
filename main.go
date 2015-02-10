@@ -6,26 +6,22 @@ import (
   "strings"
   "io/ioutil"
   "path/filepath"
-  "github.com/glenn-brown/golang-pkg-pcre/src/pkg/pcre"
 )
 
 // array of regex to execute in order
 // {{re, replace string}}
-var transformRegexArray [][]string = [][]string{
-  {`@(?!import|media|keyframes|-)`, `$`},
-  {`\.([\w\-]*)\s*\((.*)\)\s*\{`, `@mixin \1\(\2\)\n{`},
-  {`\.([\w\-]*\(.*\)\s*;)`, `@include \1`},
-  {`~"(.*)"`, `#{"\1"}`},
-  {`spin`, `adjust-hue`},
+var lessToSassReplacePairs ReplacePairs = ReplacePairs{
+  []ReplacePair {
+    ReplacePair{`@(?!import|media|keyframes|-)`, `$`},
+    ReplacePair{`\.([\w\-]*)\s*\((.*)\)\s*\{`, `@mixin \1\(\2\)\n{`},
+    ReplacePair{`\.([\w\-]*\(.*\)\s*;)`, `@include \1`},
+    ReplacePair{`~"(.*)"`, `#{"\1"}`},
+    ReplacePair{`spin`, `adjust-hue`},
+  },
 }
 
 func transformLessToSass(content []byte) []byte {
-  newContent := content
-  for _, regexArray := range transformRegexArray {
-    re := pcre.MustCompile(regexArray[0], 0)
-    newContent = re.ReplaceAll(newContent, []byte(regexArray[1]), 0)
-  }
-  return newContent
+  return Replacer(lessToSassReplacePairs).Replace(content)
 }
 
 func parseSrc(path string, info os.FileInfo, err error) error {
