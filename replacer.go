@@ -16,7 +16,7 @@ func (r ReplacePair) Replace(content []byte) []byte {
 func (replacePairArr ReplacePairs) Replace(content []byte) []byte {
 	newContent := content
 	var r Replacer
-	for _, replacePair := range replacePairArr.replacePairs {
+	for _, replacePair := range replacePairArr {
 		r = replacePair
 		newContent = r.Replace(newContent)
 	}
@@ -27,6 +27,4 @@ type ReplacePair struct {
 	matchBy, replaceWith string
 }
 
-type ReplacePairs struct {
-	replacePairs []ReplacePair
-}
+type ReplacePairs []ReplacePair

@@ -10,13 +10,11 @@ import (
 // array of regex to execute in order
 // {{re, replace string}}
 var lessToSassReplacePairs ReplacePairs = ReplacePairs{
-	[]ReplacePair{
-		ReplacePair{`@(?!import|media|keyframes|-)`, `$`},
-		ReplacePair{`\.([\w\-]*)\s*\((.*)\)\s*\{`, `@mixin \1\(\2\)\n{`},
-		ReplacePair{`\.([\w\-]*\(.*\)\s*;)`, `@include \1`},
-		ReplacePair{`~"(.*)"`, `#{"\1"}`},
-		ReplacePair{`spin`, `adjust-hue`},
-	},
+	ReplacePair{`@(?!import|media|keyframes|-)`, `$`},
+	ReplacePair{`\.([\w\-]*)\s*\((.*)\)\s*\{`, `@mixin \1\(\2\)\n{`},
+	ReplacePair{`\.([\w\-]*\(.*\)\s*;)`, `@include \1`},
+	ReplacePair{`~"(.*)"`, `#{"\1"}`},
+	ReplacePair{`spin`, `adjust-hue`},
 }
 
 func transformLessToSass(content []byte) []byte {
