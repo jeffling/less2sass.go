@@ -24,6 +24,16 @@ func transformLessToSass(content []byte) []byte {
   return Replacer(lessToSassReplacePairs).Replace(content)
 }
 
+func addSuffixIfMissing(s *string, suffix string) {
+  if !strings.HasSuffix(*s, suffix) {
+    *s = *s + suffix
+  }
+}
+
+func replaceExt(path string, newExt string) string {
+  return strings.TrimSuffix(path, filepath.Ext(path)) + newExt
+}
+
 func parseSrc(path string, info os.FileInfo, err error) error {
   if err != nil {
     return err
@@ -38,10 +48,9 @@ func parseSrc(path string, info os.FileInfo, err error) error {
 
     // write file into destination directory
     destPath := os.Args[len(os.Args) - 1]
-    if !strings.HasSuffix(destPath, "/") {
-      destPath = destPath + "/"
-    }
-    newFilePath := strings.Join([]string{destPath, strings.TrimSuffix(path, filepath.Ext(path)), ".scss"}, "")
+    addSuffixIfMissing(&destPath, "/")
+    
+    newFilePath := destPath + replaceExt(path, ".scss")
 
     err = ioutil.WriteFile(newFilePath, transformLessToSass(content), info.Mode())
 
